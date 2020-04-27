@@ -5,8 +5,20 @@
 
 EXTENDS Naturals, Sequences
 
-CONSTANTS N \* the sef of all possible nodes
+\* the sef of all possible nodes
+CONSTANTS Node
 
-Node == 1 .. N \* the nodes participating
+\* Server states
+CONSTANTS Red, Blue, Uncolored
+
+\* the nodes state
+VARIABLE state
+
+Colors == { Red, Blue }
+
+----
+Init == /\ state = [i \in Node |-> Uncolored]
+
+----
 
 =============================================================================
