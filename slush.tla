@@ -1,6 +1,6 @@
 ------------------------------- MODULE slush -------------------------------
 (***************************************************************************)
-(*             TLA+ specification of Slush consensus algorithm             *)
+(*           TLA+ specification of the Slush consensus algorithm           *)
 (***************************************************************************)
 
 EXTENDS Naturals, Sequences, Integers, Reals
