@@ -39,6 +39,12 @@ Node == 1 .. N
 
 TypeOK ==
   /\ Alpha > K / 2
+  
+ASSUME ConstantTypes ==
+  /\ K \in Int
+  /\ M \in Int
+  /\ Alpha \in Int
+  /\ N \in Int
 
 ----
 
