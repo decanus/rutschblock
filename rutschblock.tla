@@ -65,18 +65,5 @@ ProcessQueries(n) ==
       OnQuery(n, q.node, q.color)
   /\  queries' = [queries EXCEPT ![n] = {}]
 
-(***************************************************************************)
-(* Node `n` samples other nodes                                            *)
-(***************************************************************************)
-Sample(n) ==
-  /\ \E r \in 1..K:
-      Query(n, r, state[r])
-  /\ \E c \in Colors:
-      /\ state' =
-         IF responses[n][c] >= Alpha
-         THEN [state EXCEPT ![n] = c]
-         ELSE state
-      /\ responses' = [responses EXCEPT ![n][c] = 0]
-
 
 =============================================================================

@@ -5,12 +5,17 @@
 
 EXTENDS Naturals, Sequences, Integers, Reals, rutschblock
 
-\* this is essentially the slush loop    
-Next ==
-  /\ \E n \in Node:
-    /\ Sample(n)
-    /\ \E r \in 1..M:
-      /\ state[n] # Uncolored
-      /\ Sample(n)
+\* the counts for nodes
+VARIABLE count
+
+----
+
+Init ==
+  /\ state = [i \in Node |-> Uncolored]
+  /\ responses = [i \in Node |-> [c \in Colors |-> 0]]
+  /\ queries = [i \in Node |-> {}]
+  /\ count = [i \in Node |-> 0]
+
+----
 
 =============================================================================
