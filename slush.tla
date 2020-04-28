@@ -3,7 +3,7 @@
 (*             TLA+ specification of Slush consensus algorithm             *)
 (***************************************************************************)
 
-EXTENDS Naturals, Sequences
+EXTENDS Naturals, Sequences, Integers, Reals
 
 \* the K constant as specified in the paper
 CONSTANT K
@@ -14,8 +14,8 @@ CONSTANT M
 \* the α constant as specified in the paper
 CONSTANT Alpha
 
-\* the sef of all possible nodes
-CONSTANT Node
+\* the sum of nodes participating in consensus
+CONSTANT N
 
 \* Server states
 CONSTANTS Red, Blue, Uncolored
@@ -29,17 +29,27 @@ VARIABLE responses
 \* the queries for a specific node
 VARIABLE queries
 
+\* the set of colors
 Colors == { Red, Blue }
 
+\* the sef of all possible nodes
+Node == 1 .. N
+
 ----
+
+TypeOK ==
+  /\ Alpha > K / 2
+
+----
+
+----
+
 Init ==
   /\ state = [i \in Node |-> Uncolored]
   /\ responses = [i \in Node |-> [c \in Colors |-> 0]]
   /\ queries = [i \in Node |-> {}]
 
 ----
-
-\* @TODO ENSURE ALPHA > k / 2
 
 (***************************************************************************)
 (* Respond to `r` with a color `c`                                         *)
@@ -87,9 +97,13 @@ Sample(n) ==
 \* this is essentially the slush loop    
 Next ==
   /\ \E n \in Node:
-    /\ Sample(n) \* not sure where to do this
+    /\ Sample(n)
     /\ \E r \in 1..M:
       /\ state[n] # Uncolored
       /\ Sample(n)
+      
+vars == <<state, responses, queries>>      
+
+Spec == Init /\ [][Next]_vars
 
 =============================================================================
