@@ -87,6 +87,7 @@ Sample(n) ==
 \* this is essentially the slush loop    
 Next ==
   /\ \E n \in Node:
+    /\ Sample(n) \* not sure where to do this
     /\ \E r \in 1..M:
       /\ state[n] # Uncolored
       /\ Sample(n)
