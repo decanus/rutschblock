@@ -88,5 +88,8 @@ Slush(n) ==
 Next ==
   \/ \E i \in Node, c \in Color: ReceiveColor(i, c)
   \/ \E i \in Node: Slush(i)
+  
+  
+Spec == Init /\ Next
 
 =============================================================================
