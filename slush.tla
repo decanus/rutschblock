@@ -3,59 +3,90 @@
 (*           TLA+ specification of the Slush consensus algorithm           *)
 (***************************************************************************)
 
-EXTENDS rutschblock
+EXTENDS Integers, Sequences
 
-----
+\* the K constant as specified in the paper
+CONSTANT K
 
-TypeOK ==
-  /\ Alpha > K / 2
-  
-ASSUME ConstantTypes ==
-  /\ K \in Int
-  /\ M \in Int
-  /\ Alpha \in Int
-  /\ N \in Int
+\* N represents the number of nodes.
+CONSTANT N
 
-----
+\* A nodes possible states.
+CONSTANT Uninitialized, Initialized
+
+\* A nodes possible color.
+CONSTANT Red, Blue, Uncolored
+
+\* The maximum rounds
+CONSTANT MAX_ROUND
+
+\* the α constant as specified in the paper
+CONSTANT Alpha
+
+\* A nodes current state.
+VARIABLE state
+
+\* A nodes current color.
+VARIABLE color
+
+\* A nodes current round.
+VARIABLE round
+
+\* Node represents the set of nodes.
+Node == 1..N
+
+\* The set of valid node states.
+State == { Uninitialized, Initialized }
+
+\* The set of valid node colors.
+Color == { Red, Blue, Uncolored }
 
 ----
 
 Init ==
-  /\ state = [i \in Node |-> Uncolored]
-  /\ responses = [i \in Node |-> [c \in Colors |-> 0]]
-  /\ queries = [i \in Node |-> {}]
+  /\ color = [i \in Node |-> Uncolored]
+  /\ state = [i \in Node |-> Uninitialized]
+  /\ round = [i \in Node |-> 0]
 
 ----
-(***************************************************************************)
-(* Node `n` samples other nodes                                            *)
-(***************************************************************************)
-Sample(n) ==
-  /\ \E r \in 1..K:
-      Query(n, r, state[r])
-  /\ \E c \in Colors:
-      /\ state' =
-         IF responses[n][c] >= Alpha
-         THEN [state EXCEPT ![n] = c]
-         ELSE state
-      /\ responses' = [responses EXCEPT ![n][c] = 0]
 
 (***************************************************************************)
-(* Run slush for node `n`                                                  *)
+(* Node `n` receives color `c` and initializes itself with it              *)
 (***************************************************************************)
-Loop(n) ==
-    /\ Sample(n)
-    /\ \E r \in 1..M:
-      /\ state[n] # Uncolored
-      /\ Sample(n)
+ReceiveColor(n, c) ==
+  /\ state[n] = Uninitialized
+  /\ state' = [state EXCEPT ![n] = Initialized]
+  /\ color' = [color EXCEPT ![n] = c]
+  /\ UNCHANGED <<round>>
 
-\* this is essentially the slush loop    
-\* may want to put this into a seperate function
+(***************************************************************************)
+(* Node `n` receives a query with color `c` adds result `r`                *)
+(***************************************************************************)
+Query(n, c, r) ==
+  /\ color' = 
+     IF color[n] = Uncolored 
+     THEN [color EXCEPT ![n] = c]
+     ELSE color
+  /\ r' = [r EXCEPT ![c] = @ + 1]
+
+(***************************************************************************)
+(* Node `n` runs an iteration of slush                                     *)
+(***************************************************************************)
+Slush(n) ==
+  /\ round[n] < MAX_ROUND
+  /\ round' = [round EXCEPT ![n] = round[n] + 1]
+  /\ color[n] # Uncolored
+  /\ LET \* p == [x \in DOMAIN (Node \ {n}) |-> x] \* @TODO THIS PART IS FUCKED, we need to turn the set into a tuple so we can access by key
+         r == [i \in Color |-> 0]
+     IN /\ \A i \in 1..K: Query(i, color[n], r) 
+        /\ \A c \in Color:  color' =
+         IF r[c] >= Alpha
+         THEN [color EXCEPT ![n] = c]
+         ELSE color
+  /\ UNCHANGED <<state, color>>
+
 Next ==
-  /\ \E n \in Node:
-    /\ Loop(n)
-      
-vars == <<state, responses, queries>>      
-
-Spec == Init /\ [][Next]_vars
+  \/ \E i \in Node, c \in Color: ReceiveColor(i, c)
+  \/ \E i \in Node: Slush(i)
 
 =============================================================================
